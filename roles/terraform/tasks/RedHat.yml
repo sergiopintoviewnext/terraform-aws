@@ -1,0 +1,24 @@
+---
+
+- name: Instalar yum-utils
+  ansible.builtin.yum:
+    name: yum-utils
+    state: present
+    update_cache: true
+
+
+- name: Añadir repo terraform
+  ansible.builtin.yum_repository:
+    name: terraform
+    description: Terraform repo
+    baseurl: https://rpm.releases.hashicorp.com/RHEL/{{ ansible_distribution_major_version }}/{{ ansible_architecture }}/stable
+    gpgcheck: false
+
+
+- name: Instalar terraform
+  ansible.builtin.yum:
+    name: terraform
+    state: present
+    update_cache: true
+
+...

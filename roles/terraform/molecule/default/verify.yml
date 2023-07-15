@@ -1,0 +1,20 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: true
+  vars:
+    - servicio: Terraform  
+  tasks:
+  - name: Comprobar version terraform
+    ansible.builtin.command:
+      cmd: terraform --version
+    register: version
+
+
+  - name: Verificar version
+    ansible.builtin.assert:
+      that: not version.failed
+      success_msg: "{{ servicio }} esta instalado. Version: {{ version.stdout_lines[0][10::]}}"
+      fail_msg: "{{ servicio }} NO instalado"

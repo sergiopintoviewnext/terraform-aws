@@ -1,0 +1,6 @@
+---
+
+- name: Incluir ficheros instalacion
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
+
+...
