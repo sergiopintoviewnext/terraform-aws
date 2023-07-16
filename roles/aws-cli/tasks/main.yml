@@ -1,67 +1,88 @@
 ---
-
-- name: Instalar unzip
-  ansible.builtin.package:
-    name: unzip
-    state: present
-    update_cache: true
-
-
-- name: Verificar si el archivo ya existe
-  ansible.builtin.stat:
-    path: "/tmp/awscliv2.zip"
-  register: aws_zip
-
-
-- name: Descargar aws-cli si el archivo no existe
-  ansible.builtin.uri:
-    url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ ansible_architecture }}.zip"
-    dest: "/tmp/awscliv2.zip"
-  when: not aws_zip.stat.exists 
-
-
-- name: Descomprimir aws-cli
-  ansible.builtin.unarchive:
-    src: /tmp/awscliv2.zip
-    dest: /tmp/
-    remote_src: true
-
-
-- name: Instalar aws-cli
-  ansible.builtin.command:
-    cmd: sh /tmp/aws/install --update
-  changed_when: false
-
-
-- name: Instalar pip
-  ansible.builtin.package:
-   name: python3-pip
-   state: present
-   update_cache: true
-
-- name: Instalar pexpect
+- name: Ejecutar block
   block:
-    - name: Instalar pexpect python
-      ansible.builtin.pip:
-        name: pexpect
-        state: present
-  rescue:
-    - name: Instalar pexpect administrador paquetes
+    - name: Crear carpeta temporal
+      ansible.builtin.file:
+        path: "{{ path }}"
+        state: directory
+        mode: '0777'
+
+
+    - name: Instalar unzip
       ansible.builtin.package:
-        name: python3-pexpect
+        name: unzip
         state: present
         update_cache: true
 
 
-- name: Configuracion AWS
-  ansible.builtin.expect:
-    command: aws configure
-    responses:
-      AWS Access Key ID: "{{ access_key }}"
-      AWS Secret Access Key: "{{ secret_key }}"
-      Default region name: "{{ region }}"
-      Default output format: "{{ format }}"
-  changed_when: false
-  become: false
+    - name: Verificar si el archivo ya existe
+      ansible.builtin.stat:
+        path: "{{ path }}/awscliv2.zip"
+      register: aws_zip
+
+
+    - name: Descargar aws-cli si el archivo no existe
+      ansible.builtin.uri:
+        url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ ansible_architecture }}.zip"
+        dest: "{{ path }}/awscliv2.zip"
+      when: not aws_zip.stat.exists 
+
+
+    - name: Descomprimir aws-cli
+      ansible.builtin.unarchive:
+        src: "{{ path }}/awscliv2.zip"
+        dest: "{{ path }}/"
+        remote_src: true
+
+
+    - name: Instalar aws-cli
+      ansible.builtin.command:
+        cmd: "sh {{ path }}/aws/install --update"
+
+
+    - name: Instalar pip
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+        update_cache: true
+
+    - name: Instalar pexpect
+      block:
+        - name: Instalar pexpect python
+          ansible.builtin.pip:
+            name: pexpect
+            state: present
+      rescue:
+        - name: Instalar pexpect administrador paquetes
+          ansible.builtin.package:
+            name: python3-pexpect
+            state: present
+            update_cache: true
+
+
+    - name: Configuracion AWS
+      ansible.builtin.expect:
+        command: aws configure
+        responses:
+          AWS Access Key ID: "{{ access_key }}"
+          AWS Secret Access Key: "{{ secret_key }}"
+          Default region name: "{{ region }}"
+          Default output format: "{{ format }}"
+      become: false
+
+
+    - name: Eliminar carpeta temporal
+      ansible.builtin.file:
+        path: "{{ path }}"
+        state: absent
+  rescue:
+    - name: Eliminar carpeta temporal
+      ansible.builtin.file:
+        path: "{{ path }}"
+        state: absent
+
+        
+    - name: Detener playbook
+      ansible.builtin.meta: end_play    
 
 ...

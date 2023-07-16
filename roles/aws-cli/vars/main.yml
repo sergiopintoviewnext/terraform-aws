@@ -1,8 +1,10 @@
 ---
 
-access_key: 
-secret_key: 
-region: 
+access_key:
+secret_key:
+region:
 format:
+
+path: /tmp/temporal
 
 ...
