@@ -1,0 +1,50 @@
+---
+
+- name: Crear carpeta temporal
+  ansible.builtin.file:
+    path: "{{ path }}"
+    state: directory
+    mode: '0777'
+
+
+- name: Verificar si el archivo ya existe
+  ansible.builtin.stat:
+    path: "{{ path }}/terraform.zip"
+  register: terraform_zip
+
+
+- name: Descargar terraform si el archivo no existe
+  ansible.builtin.uri:
+    url: "https://releases.hashicorp.com/terraform/{{ version_suse }}/terraform_{{ version_suse }}_linux_amd64.zip"
+    dest: "{{ path }}/terraform.zip"
+  when: not terraform_zip.stat.exists
+
+
+- name: Instalar unzip
+  community.general.zypper:
+    name: unzip
+    state: present
+    update_cache: true
+
+
+- name: Descomprimir aws-cli
+  ansible.builtin.unarchive:
+    src: "{{ path }}/terraform.zip"
+    dest: "{{ path }}/"
+    remote_src: true
+
+
+- name: Mover binario
+  ansible.builtin.copy:
+    src: "{{ path }}/terraform"
+    dest: /usr/bin/
+    mode: '0755'
+    remote_src: true
+
+
+- name: Eliminar carpeta temporal
+  ansible.builtin.file:
+    path: "{{ path }}"
+    state: absent
+
+...
