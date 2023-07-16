@@ -35,8 +35,8 @@ Para la configuración de aws-cli se requieren las siguientes variables:
 			- host: all
 			  become: true
 			  roles:
-				  - role: terraform
-				  - role: aws-cli
+			    - role: terraform
+			    - role: aws-cli
 
 
 ## TEST
@@ -50,6 +50,7 @@ Se ha realizado el testeo de este rol mediante:
 		docker:2.1.0 from molecule_docker requiring collections: community.docker>=3.0.2 ansible.posix>=1.4.0
 
 	utilizando las imagenes de docker:
+
 		- registry.access.redhat.com/ubi8/ubi-init:8.8-8 
 		- registry.access.redhat.com/ubi9/ubi-init:9.2-5
 		- docker.io/debian:stable-20230703
