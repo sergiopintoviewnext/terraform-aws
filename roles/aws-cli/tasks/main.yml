@@ -1,0 +1,67 @@
+---
+
+- name: Instalar unzip
+  ansible.builtin.package:
+    name: unzip
+    state: present
+    update_cache: true
+
+
+- name: Verificar si el archivo ya existe
+  ansible.builtin.stat:
+    path: "/tmp/awscliv2.zip"
+  register: aws_zip
+
+
+- name: Descargar aws-cli si el archivo no existe
+  ansible.builtin.uri:
+    url: "https://awscli.amazonaws.com/awscli-exe-linux-{{ ansible_architecture }}.zip"
+    dest: "/tmp/awscliv2.zip"
+  when: not aws_zip.stat.exists 
+
+
+- name: Descomprimir aws-cli
+  ansible.builtin.unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp/
+    remote_src: true
+
+
+- name: Instalar aws-cli
+  ansible.builtin.command:
+    cmd: sh /tmp/aws/install --update
+  changed_when: false
+
+
+- name: Instalar pip
+  ansible.builtin.package:
+   name: python3-pip
+   state: present
+   update_cache: true
+
+- name: Instalar pexpect
+  block:
+    - name: Instalar pexpect python
+      ansible.builtin.pip:
+        name: pexpect
+        state: present
+  rescue:
+    - name: Instalar pexpect administrador paquetes
+      ansible.builtin.package:
+        name: python3-pexpect
+        state: present
+        update_cache: true
+
+
+- name: Configuracion AWS
+  ansible.builtin.expect:
+    command: aws configure
+    responses:
+      AWS Access Key ID: "{{ access_key }}"
+      AWS Secret Access Key: "{{ secret_key }}"
+      Default region name: "{{ region }}"
+      Default output format: "{{ format }}"
+  changed_when: false
+  become: false
+
+...
