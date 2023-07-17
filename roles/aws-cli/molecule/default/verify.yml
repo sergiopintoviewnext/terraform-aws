@@ -3,8 +3,46 @@
 
 - name: Verify
   hosts: all
-  gather_facts: false
+  gather_facts: true
+  vars:
+    - servicio: aws-cli
+    - path: /tmp/temporal
   tasks:
-  - name: Example assertion
+  - name: Comprobar version 
+    ansible.builtin.command:
+      cmd: aws --version
+    register: version
+
+
+  - name: Verificar version
     ansible.builtin.assert:
-      that: true
+      that: not version.failed
+      success_msg: "{{ servicio }} esta instalado. Version: {{ version.stdout[8:15]}}"
+      fail_msg: "{{ servicio }} NO instalado"
+
+
+  - name: Comprobar configuración
+    ansible.builtin.command:
+      cmd: aws sts get-caller-identity
+    register: aws_identity
+    ignore_errors: true
+
+
+  - name: Verificar configuracion
+    ansible.builtin.assert:
+      that: not aws_identity.failed
+      success_msg: "{{ servicio }} esta configurado correctamente"
+      fail_msg: "{{ servicio }} NO esta configurado correctamente"
+
+  
+  - name: Verificar si el archivo ya existe
+    ansible.builtin.stat:
+      path: "{{ path }}"
+    register: fichero
+
+
+  - name: Verificar configuracion
+    ansible.builtin.assert:
+      that: not fichero.stat.exists
+      success_msg: "Se han eliminado correctamente los archivos temporales"
+      fail_msg: "NO se han eliminado correctamente los archivos temporales"

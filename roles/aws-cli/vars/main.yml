@@ -3,7 +3,7 @@
 access_key:
 secret_key:
 region:
-format:
+format: json
 
 path: /tmp/temporal
 
